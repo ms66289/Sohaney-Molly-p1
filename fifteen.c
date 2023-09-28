@@ -21,7 +21,7 @@
  * Note that usleep is obsolete, but it offers more granularity than
  * sleep and is simpler to use than nanosleep; `man usleep` for more.
  */
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
         int tile;
 		scanf("%d", &tile);
 		getchar();
-        
+
         // quit if user inputs 0 (for testing)
         if (tile == 0)
         {
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
         // sleep thread for animation's sake
         usleep(50000);
     }
-    
+
     // close log
     fclose(file);
 
@@ -161,11 +161,28 @@ void greet(void)
 
 /**
  * Initializes the game's board with tiles numbered 1 through d*d - 1
- * (i.e., fills 2D array with values but does not actually print them).  
+ * (i.e., fills 2D array with values but does not actually print them).
  */
 void init(void)
 {
-  // TODO
+	int count = d*d - 1;
+
+	//Adding the number in the array in reverse
+	for (int i = 0; i < d; i++) {
+		for (int j = 0; j < d; j++) {
+			board[i][j] = count;
+			count--;
+		}
+	}
+
+	// Switch 1 and 2 if the dimension is even
+	if (d % 2 == 0) {
+		board[d - 1][d - 2] = 2;
+		board[d - 1][d - 3] = 1;
+	}
+
+	//In this case "-1" is a blank space
+	board[d - 1][d - 1] = -1;
 }
 
 /**
@@ -173,23 +190,93 @@ void init(void)
  */
 void draw(void)
 {
-  // TODO
+	for (int i = 0; i < d; i++) {
+		for (int j = 0; j < d; j++) {
+			if (board[i][j] == -1) {
+				printf("   ");
+			} else if (board[i][j] < 10 && board[i][j] > 0) {
+				printf(" %d ", board[i][j]);
+			} else {
+				printf("%d ", board[i][j]);
+			}
+		}
+		printf("\n");
+	}
 }
 
 /**
  * If tile borders empty space, moves tile and returns 1 (true), else
- * returns 0 (false). 
+ * returns 0 (false).
  */
 int move(int tile)
 {
-  // TODO
+	//Checks for invalid tiles
+	if (tile < 1 || tile > d*d - 1) {
+		return 0;
+	}
+
+	int tileX = 0;
+	int tileY = 0;
+	int blankX = 0;
+	int blankY = 0;
+
+	//Finds the position of the tile
+	for (int i = 0; i < d; i++) {
+		for (int j = 0; j < d; j++) {
+			if (board[i][j] == tile) {
+				tileX = i;
+				tileY = j;
+				break;
+			}
+		}
+	}
+
+	//Finds the position of the blank space
+	for (int a = 0; a < d; a++) {
+		for (int b = 0; b < d; b++) {
+			if (board[a][b] == -1) {
+				blankX = a;
+				blankY = b;
+				break;
+			}
+		}
+	}
+
+	//Makes sure that the tile and blank space position isn't the same
+	if (tileX == blankX && tileY == blankY) {
+		return 0;
+	}
+
+	//Checks if the blank space is adjacent to the tile and swaps if it is true
+	if ((abs(tileX - blankX) == 0 || abs(tileX - blankX) == 1) &&
+		(abs(tileY - blankY) == 0 || abs(tileY - blankY) == 1)) {
+		board[tileX][tileY] = -1;
+		board[blankX][blankY] = tile;
+		return 1;
+	}
+	return 0;
 }
 
 /**
- * Returns true if game is won (i.e., board is in winning configuration), 
+ * Returns true if game is won (i.e., board is in winning configuration),
  * else false.
  */
 int won(void)
 {
-  // TODO
+	int count = 1;
+	for (int i = 0; i < d; i++) {
+		for (int j = 0; j < d; j++) {
+			if ((i == d - 1) && (j == d - 1)) {
+				if (board[i][j] != -1) {
+					return 0;
+				}
+			} else {
+				if (board[i][j] != count) {
+					return 0;
+				}
+			}
+			count++;
+		}
+	}
+	return 1;
 }
